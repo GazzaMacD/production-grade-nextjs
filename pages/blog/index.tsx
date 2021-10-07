@@ -34,6 +34,28 @@ Blog.defaultProps = {
 
 export default Blog
 
+export async function getStaticProps() {
+  //read the posts from the posts dir
+  const postsDir = path.join(process.cwd(), 'posts')
+  const filenames = fs.readdirSync(postsDir)
+  const filePosts = filenames.map((filename) => {
+    const filePath = path.join(postsDir, filename)
+    return fs.readFileSync(filePath, 'utf-8')
+  })
+
+  // merge posts from cms and from file system and sort by pub date
+  const posts = orderby(
+    [...postsFromCMS.published, ...filePosts].map((content: string) => {
+      //extract frontmatter from markdown content
+      const { data } = matter(content)
+      return data
+    }),
+    ['publishedOn'],
+    ['desc'],
+  ) // end orderby
+  return { props: { posts } }
+}
+
 /**
  * Need to get the posts from the
  * fs and our CMS

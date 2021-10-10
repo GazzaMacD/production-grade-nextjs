@@ -69,18 +69,19 @@ export function getStaticPaths() {
         },
       }
     }),
-    fallback: true,
+    fallback: true, // must set in order to see preview versions
   }
 }
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps({ params, preview }) {
   let post
   try {
     const filePath = path.join(process.cwd(), 'posts', params.slug + '.mdx')
     const file = fs.readFileSync(filePath, 'utf-8')
     post = matter(file)
   } catch {
-    const cmsPosts = posts.published.map((post) => {
+    const targetPosts = preview ? posts.draft : posts.published
+    const cmsPosts = targetPosts.map((post) => {
       return matter(post)
     })
     post = cmsPosts.find((post) => {

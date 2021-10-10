@@ -34,7 +34,7 @@ Blog.defaultProps = {
 
 export default Blog
 
-export async function getStaticProps() {
+export async function getStaticProps(ctx) {
   //read the posts from the posts dir
   const postsDir = path.join(process.cwd(), 'posts')
   const filenames = fs.readdirSync(postsDir)
@@ -42,10 +42,12 @@ export async function getStaticProps() {
     const filePath = path.join(postsDir, filename)
     return fs.readFileSync(filePath, 'utf-8')
   })
+  // get published or draft depending on ctx.previw cookie
+  const cmsPosts = ctx.preview ? postsFromCMS.draft : postsFromCMS.published
 
   // merge posts from cms and from file system and sort by pub date
   const posts = orderby(
-    [...postsFromCMS.published, ...filePosts].map((content: string) => {
+    [...cmsPosts, ...filePosts].map((content: string) => {
       //extract frontmatter from markdown content
       const { data } = matter(content)
       return data
